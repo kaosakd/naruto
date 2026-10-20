@@ -1,0 +1,614 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F26A1B">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Libro Bingo Shinobi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: banda azul marino con la placa shinobi arriba, pestañas tipo carpeta que se funden con la página, formulario + tabla por pestaña. */
+:root {
+  --bg: #EDF0F5;
+  --surface: #FFFFFF;
+  --field: #F6F8FB;
+  --ink: #141B2D;
+  --muted: #566180;
+  --line: #C9D1E1;
+  --accent: #F26A1B;
+  --accent-ink: #1A0F05;
+  --band: #1C2A4A;
+  --band-ink: #F2F5FB;
+  --band-muted: #A9B6D3;
+  --cloth: #2F52A8;
+  --plate: #B9C2D4;
+  --plate-edge: #55617C;
+  --dl: 46%;
+  --ok-bg: #D8F1E0; --ok-fg: #14532D;
+  --warn-bg: #FCE9C4; --warn-fg: #7A4B00;
+  --crit-bg: #F9D5D5; --crit-fg: #8A1C1C;
+  --display: "Bowlby One", "Arial Black", Impact, sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C1220; --surface: #141D33; --field: #0F1830; --ink: #EEF1F8; --muted: #9AA6C2; --line: #27345A;
+    --accent: #FF7A2B; --band: #080D19; --band-ink: #F2F5FB; --band-muted: #8E9BBB;
+    --dl: 60%;
+    --ok-bg: #12351F; --ok-fg: #9BE3B5;
+    --warn-bg: #3E2D0A; --warn-fg: #F5CF7C;
+    --crit-bg: #441616; --crit-fg: #F6A5A5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C1220; --surface: #141D33; --field: #0F1830; --ink: #EEF1F8; --muted: #9AA6C2; --line: #27345A;
+  --accent: #FF7A2B; --band: #080D19; --band-ink: #F2F5FB; --band-muted: #8E9BBB;
+  --dl: 60%;
+  --ok-bg: #12351F; --ok-fg: #9BE3B5;
+  --warn-bg: #3E2D0A; --warn-fg: #F5CF7C;
+  --crit-bg: #441616; --crit-fg: #F6A5A5;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+
+/* Banda */
+.band { background: var(--band); color: var(--band-ink); padding-block: 28px 0; }
+.brand { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 32px; padding-bottom: 26px; }
+.brand-text { flex: 1 1 320px; min-width: 0; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--band-muted); margin: 0 0 8px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.2rem, 7vw, 4rem); line-height: 1; letter-spacing: 0.02em; text-transform: uppercase; }
+h1 span { color: var(--accent); }
+.lede { margin: 12px 0 0; max-width: 52ch; color: var(--band-muted); }
+.plate { flex: 0 1 260px; width: 260px; max-width: 100%; height: auto; }
+
+.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
+.tab { flex: 0 0 auto; appearance: none; border: 0; background: transparent; color: var(--band-muted); cursor: pointer; font-family: var(--display); font-size: 0.95rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 12px 18px; border-radius: 10px 10px 0 0; display: inline-flex; align-items: center; gap: 10px; }
+.tab:hover { color: var(--band-ink); }
+.tab[aria-selected="true"] { background: var(--bg); color: var(--ink); }
+.tab .n { font-family: var(--mono); font-size: 12px; background: color-mix(in srgb, currentColor 16%, transparent); border-radius: 999px; padding: 1px 8px; }
+.tab:focus-visible, .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* Contenido */
+main { padding-block: 28px 96px; }
+.panel[hidden] { display: none; }
+.panel { display: grid; gap: 28px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; min-width: 0; }
+.card h2 { font-family: var(--display); font-weight: 400; font-size: 1.35rem; letter-spacing: 0.03em; text-transform: uppercase; }
+.card .sub { margin: 6px 0 18px; color: var(--muted); max-width: 70ch; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field.wide { grid-column: 1 / -1; }
+label, .lbl { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+input[type="text"], input[type="url"], select, textarea { width: 100%; min-height: 44px; padding: 10px 12px; font: inherit; color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 4px; }
+input[readonly] { color: var(--muted); }
+textarea { min-height: 76px; resize: vertical; }
+.check { display: flex; align-items: center; gap: 10px; min-height: 44px; font-family: var(--body); font-size: 1rem; text-transform: none; letter-spacing: 0; color: var(--ink); }
+.check input { width: 20px; height: 20px; accent-color: var(--accent); }
+.hint { font-size: 0.875rem; color: var(--muted); margin: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; align-items: center; }
+.btn { appearance: none; cursor: pointer; font-family: var(--display); font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 20px; min-height: 44px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.btn:hover { filter: brightness(1.07); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--accent); filter: none; }
+.btn.small { min-height: 34px; padding: 6px 12px; font-size: 0.75rem; }
+.btn.danger-armed { background: var(--crit-bg); color: var(--crit-fg); border-color: var(--crit-fg); }
+
+.head-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+th { text-align: left; font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; background: var(--field); border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+td.name { font-weight: 600; white-space: nowrap; }
+td.num, th.num { text-align: right; }
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+
+.pill { display: inline-flex; align-items: center; font-family: var(--mono); font-size: 12px; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+.pill.activo { background: var(--ok-bg); color: var(--ok-fg); }
+.pill.desertor { background: var(--warn-bg); color: var(--warn-fg); }
+.pill.renegado { background: var(--crit-bg); color: var(--crit-fg); }
+.tag { font-family: var(--mono); font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 1px 6px; margin-left: 6px; white-space: nowrap; }
+.chip { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: hsl(var(--h, 220) 70% var(--dl)); flex: none; }
+.el-fuego { --h: 14; } .el-agua { --h: 210; } .el-viento { --h: 165; } .el-rayo { --h: 48; } .el-tierra { --h: 30; }
+.el-madera { --h: 120; } .el-hielo { --h: 190; } .el-lava { --h: 4; } .el-tormenta { --h: 270; } .el-otro { --h: 220; }
+
+.notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 16px; border: 1px dashed var(--line); border-radius: 4px; color: var(--muted); font-size: 0.95rem; }
+
+/* Relaciones */
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree > li { border-top: 1px solid var(--line); padding: 14px 0; }
+.tree > li:first-child { border-top: 0; padding-top: 0; }
+.tree ul { margin: 8px 0 0 6px; padding-left: 18px; border-left: 2px solid var(--line); display: grid; gap: 10px; }
+.tree .lvl { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
+.tree .nm { font-weight: 600; }
+.tree .people { display: flex; flex-wrap: wrap; gap: 6px 10px; margin-top: 6px; }
+.none { color: var(--muted); font-style: italic; }
+
+/* Conexión */
+.steps { margin: 0 0 18px; padding-left: 22px; display: grid; gap: 8px; max-width: 74ch; }
+pre { margin: 0; padding: 16px; max-height: 340px; overflow: auto; background: var(--field); border: 1px solid var(--line); border-radius: 4px; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; tab-size: 2; }
+code { font-family: var(--mono); font-size: 0.9em; background: var(--field); padding: 1px 5px; border-radius: 3px; }
+
+.toast { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); margin: 0 auto; width: fit-content; max-width: 100%; background: var(--band); color: var(--band-ink); padding: 12px 18px; border-radius: 4px; border-left: 4px solid var(--accent); box-shadow: 0 8px 24px rgba(0,0,0,.28); z-index: 20; }
+.toast[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<header class="band">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-text">
+        <p class="eyebrow">Registro de shinobis de las cinco grandes naciones</p>
+        <h1>Libro <span>Bingo</span></h1>
+        <p class="lede">Anota a cada shinobi con su aldea, país, clan, elemento y rango. Marca a los desertores y renegados y mira cómo se conecta todo.</p>
+      </div>
+      <svg class="plate" viewBox="0 0 260 78" role="img" aria-label="Protector de frente shinobi con un remolino grabado">
+        <rect x="0" y="22" width="86" height="34" rx="3" fill="var(--cloth)"/>
+        <rect x="174" y="22" width="86" height="34" rx="3" fill="var(--cloth)"/>
+        <rect x="52" y="6" width="156" height="66" rx="9" fill="var(--plate)" stroke="var(--plate-edge)" stroke-width="3"/>
+        <circle cx="64" cy="39" r="3" fill="var(--plate-edge)"/><circle cx="196" cy="39" r="3" fill="var(--plate-edge)"/>
+        <path d="M130 39 m0 0 a5 5 0 1 1 10 0 a10 10 0 1 1 -20 0 a15 15 0 1 1 30 0 a20 20 0 1 1 -40 0" fill="none" stroke="var(--plate-edge)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Tablas del libro">
+      <button class="tab" role="tab" id="tab-shinobis" data-tab="shinobis" aria-selected="true" aria-controls="p-shinobis">Shinobis <span class="n" data-count="shinobis">0</span></button>
+      <button class="tab" role="tab" id="tab-aldeas" data-tab="aldeas" aria-selected="false" aria-controls="p-aldeas">Aldeas <span class="n" data-count="aldeas">0</span></button>
+      <button class="tab" role="tab" id="tab-clanes" data-tab="clanes" aria-selected="false" aria-controls="p-clanes">Clanes <span class="n" data-count="clanes">0</span></button>
+      <button class="tab" role="tab" id="tab-paises" data-tab="paises" aria-selected="false" aria-controls="p-paises">Países <span class="n" data-count="paises">0</span></button>
+      <button class="tab" role="tab" id="tab-relaciones" data-tab="relaciones" aria-selected="false" aria-controls="p-relaciones">Relaciones</button>
+      <button class="tab" role="tab" id="tab-sheets" data-tab="sheets" aria-selected="false" aria-controls="p-sheets">Google Sheets</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="demo-note" class="notice" hidden style="margin-bottom:28px">
+    <span>Estas filas son datos de ejemplo para que veas cómo se relacionan las tablas.</span>
+    <button type="button" class="btn ghost small" id="btn-clear">Vaciar ejemplos</button>
+  </div>
+
+  <!-- SHINOBIS -->
+  <section class="panel" id="p-shinobis" role="tabpanel" aria-labelledby="tab-shinobis">
+    <form class="card" id="f-shinobis" autocomplete="off">
+      <h2>Registrar shinobi</h2>
+      <p class="sub">Elige la aldea y el país se completa solo, porque cada aldea pertenece a un país. Si no existe la aldea, créala primero en su pestaña.</p>
+      <div class="grid">
+        <div class="field"><label for="s-nombre">Nombre</label><input type="text" id="s-nombre" required placeholder="Naruto Uzumaki"></div>
+        <div class="field"><label for="s-aldea">Aldea</label><select id="s-aldea" required></select></div>
+        <div class="field"><label for="s-pais">País (según la aldea)</label><input type="text" id="s-pais" readonly placeholder="Se completa al elegir aldea"></div>
+        <div class="field"><label for="s-clan">Clan</label><select id="s-clan"></select></div>
+        <div class="field"><label for="s-elem">Elemento principal</label><select id="s-elem"></select></div>
+        <div class="field"><label for="s-elem2">Elemento secundario</label><select id="s-elem2"></select></div>
+        <div class="field"><label for="s-rango">Rango</label><select id="s-rango"></select></div>
+        <div class="field"><label for="s-estado">Estado</label><select id="s-estado"></select></div>
+        <div class="field"><label for="s-afil">Afiliación actual</label><input type="text" id="s-afil" placeholder="Akatsuki, Taka, ninguna"></div>
+        <div class="field"><span class="lbl">Banda de la aldea</span><label class="check" for="s-tachada"><input type="checkbox" id="s-tachada">Tachada con una raya</label></div>
+        <div class="field wide"><label for="s-notas">Notas</label><textarea id="s-notas" placeholder="Habilidades, historial, recompensa"></textarea></div>
+      </div>
+      <p class="hint" style="margin-top:14px"><strong>Desertor</strong> abandonó su aldea. <strong>Renegado</strong> además es un fugitivo declarado, con la banda tachada.</p>
+      <div class="actions"><button class="btn" type="submit">Agregar al libro</button></div>
+    </form>
+    <div class="card"><div class="head-row"><h2>Shinobis registrados</h2><button class="btn ghost small" type="button" data-copy="shinobis">Copiar para Sheets</button></div><div class="tablewrap" id="t-shinobis"></div></div>
+  </section>
+
+  <!-- ALDEAS -->
+  <section class="panel" id="p-aldeas" role="tabpanel" aria-labelledby="tab-aldeas" hidden>
+    <form class="card" id="f-aldeas" autocomplete="off">
+      <h2>Registrar aldea</h2>
+      <p class="sub">Cada aldea pertenece a un país. Por ejemplo, la Aldea de la Hoja pertenece al País del Fuego.</p>
+      <div class="grid">
+        <div class="field"><label for="a-nombre">Nombre de la aldea</label><input type="text" id="a-nombre" required placeholder="Aldea de la Hoja"></div>
+        <div class="field"><label for="a-pais">País</label><select id="a-pais" required></select></div>
+        <div class="field"><label for="a-kage">Título del líder</label><input type="text" id="a-kage" placeholder="Hokage"></div>
+      </div>
+      <div class="actions"><button class="btn" type="submit">Agregar aldea</button></div>
+    </form>
+    <div class="card"><div class="head-row"><h2>Aldeas registradas</h2><button class="btn ghost small" type="button" data-copy="aldeas">Copiar para Sheets</button></div><div class="tablewrap" id="t-aldeas"></div></div>
+  </section>
+
+  <!-- CLANES -->
+  <section class="panel" id="p-clanes" role="tabpanel" aria-labelledby="tab-clanes" hidden>
+    <form class="card" id="f-clanes" autocomplete="off">
+      <h2>Registrar clan</h2>
+      <p class="sub">Un clan se asocia a la aldea donde vive. Anota su línea de sangre si tiene una.</p>
+      <div class="grid">
+        <div class="field"><label for="c-nombre">Nombre del clan</label><input type="text" id="c-nombre" required placeholder="Clan Uzumaki"></div>
+        <div class="field"><label for="c-aldea">Aldea</label><select id="c-aldea" required></select></div>
+        <div class="field"><label for="c-kekkei">Línea de sangre o técnica</label><input type="text" id="c-kekkei" placeholder="Sharingan, Byakugan"></div>
+      </div>
+      <div class="actions"><button class="btn" type="submit">Agregar clan</button></div>
+    </form>
+    <div class="card"><div class="head-row"><h2>Clanes registrados</h2><button class="btn ghost small" type="button" data-copy="clanes">Copiar para Sheets</button></div><div class="tablewrap" id="t-clanes"></div></div>
+  </section>
+
+  <!-- PAISES -->
+  <section class="panel" id="p-paises" role="tabpanel" aria-labelledby="tab-paises" hidden>
+    <form class="card" id="f-paises" autocomplete="off">
+      <h2>Registrar país</h2>
+      <p class="sub">Empieza por aquí: las aldeas necesitan un país donde vivir.</p>
+      <div class="grid">
+        <div class="field"><label for="p-nombre">Nombre del país</label><input type="text" id="p-nombre" required placeholder="País del Fuego"></div>
+        <div class="field"><label for="p-notas">Notas</label><input type="text" id="p-notas" placeholder="Geografía, gobernante"></div>
+      </div>
+      <div class="actions"><button class="btn" type="submit">Agregar país</button></div>
+    </form>
+    <div class="card"><div class="head-row"><h2>Países registrados</h2><button class="btn ghost small" type="button" data-copy="paises">Copiar para Sheets</button></div><div class="tablewrap" id="t-paises"></div></div>
+  </section>
+
+  <!-- RELACIONES -->
+  <section class="panel" id="p-relaciones" role="tabpanel" aria-labelledby="tab-relaciones" hidden>
+    <div class="card">
+      <h2>Mapa de relaciones</h2>
+      <p class="sub">País, aldea, clan y shinobi, tal como quedan conectados en las tablas.</p>
+      <ul class="tree" id="tree"></ul>
+    </div>
+  </section>
+
+  <!-- SHEETS -->
+  <section class="panel" id="p-sheets" role="tabpanel" aria-labelledby="tab-sheets" hidden>
+    <div class="card">
+      <h2>Conectar con Google Sheets</h2>
+      <p class="sub">El libro crea cuatro hojas en tu archivo de Google Sheets: Paises, Aldeas, Clanes y Shinobis. Sigue estos pasos una sola vez.</p>
+      <ol class="steps">
+        <li>Crea una hoja de cálculo nueva en Google Sheets.</li>
+        <li>Entra a <strong>Extensiones</strong>, luego <strong>Apps Script</strong>, borra lo que haya y pega el código de abajo.</li>
+        <li>Ejecuta la función <code>configurar</code> y acepta los permisos. Se crean las cuatro hojas con sus encabezados.</li>
+        <li>Pulsa <strong>Implementar</strong>, luego <strong>Nueva implementación</strong>, tipo <strong>Aplicación web</strong>, acceso <strong>Cualquier persona</strong>. Copia la URL que termina en <code>/exec</code>.</li>
+        <li>Pega esa URL aquí abajo y guárdala.</li>
+      </ol>
+      <div class="head-row"><span class="lbl">Código de Apps Script</span><button class="btn ghost small" type="button" id="btn-copy-code">Copiar código</button></div>
+      <pre id="code" tabindex="0"></pre>
+    </div>
+    <div class="card">
+      <h2>Enviar datos</h2>
+      <p class="sub">Con la URL guardada, cada registro nuevo viaja a tu hoja. También puedes enviar todo el libro de una vez, lo que reemplaza el contenido de las hojas.</p>
+      <div class="grid">
+        <div class="field wide"><label for="g-url">URL de la aplicación web</label><input type="url" id="g-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
+        <div class="field"><label class="check" for="g-auto"><input type="checkbox" id="g-auto" checked>Enviar cada registro al guardarlo</label></div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" id="btn-save-url">Guardar URL</button>
+        <button class="btn ghost" type="button" id="btn-sync">Enviar todo el libro</button>
+      </div>
+      <p class="hint" style="margin-top:14px">El envío funciona cuando abres el archivo <code>libro-bingo.html</code> en tu navegador. La vista previa dentro de Claude bloquea las conexiones externas, aunque ahí puedes usar <strong>Copiar para Sheets</strong> y pegar en tu hoja.</p>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  var KEY = 'libro-bingo-v1';
+  var ELEMENTOS = ['Fuego', 'Agua', 'Viento (Aire)', 'Rayo', 'Tierra', 'Madera', 'Hielo', 'Lava', 'Tormenta', 'Otro'];
+  var RANGOS = ['Estudiante de la Academia', 'Genin', 'Chunin', 'Jonin', 'ANBU', 'Sannin', 'Kage'];
+  var ESTADOS = ['Activo', 'Desertor', 'Renegado'];
+
+  var TABLAS = {
+    paises:   { hoja: 'Paises',   cols: [['pais', 'País'], ['notas', 'Notas']] },
+    aldeas:   { hoja: 'Aldeas',   cols: [['aldea', 'Aldea'], ['pais', 'País'], ['kage', 'Líder']] },
+    clanes:   { hoja: 'Clanes',   cols: [['clan', 'Clan'], ['aldea', 'Aldea'], ['kekkei', 'Línea de sangre']] },
+    shinobis: { hoja: 'Shinobis', cols: [['nombre', 'Nombre'], ['aldea', 'Aldea'], ['pais', 'País'], ['clan', 'Clan'], ['elemento', 'Elemento'], ['elemento2', 'Elemento secundario'], ['rango', 'Rango'], ['estado', 'Estado'], ['tachada', 'Banda tachada'], ['afiliacion', 'Afiliación'], ['notas', 'Notas']] }
+  };
+
+  var SEED = {
+    paises: [
+      { pais: 'País del Fuego', notas: 'Hogar de la Aldea de la Hoja' },
+      { pais: 'País del Viento', notas: 'Territorio desértico' },
+      { pais: 'País del Agua', notas: 'Archipiélago con niebla' },
+      { pais: 'País del Rayo', notas: 'Tierras montañosas' },
+      { pais: 'País de la Tierra', notas: 'Región rocosa' }
+    ],
+    aldeas: [
+      { aldea: 'Aldea de la Hoja', pais: 'País del Fuego', kage: 'Hokage' },
+      { aldea: 'Aldea de la Arena', pais: 'País del Viento', kage: 'Kazekage' },
+      { aldea: 'Aldea de la Niebla', pais: 'País del Agua', kage: 'Mizukage' },
+      { aldea: 'Aldea de la Nube', pais: 'País del Rayo', kage: 'Raikage' },
+      { aldea: 'Aldea de la Roca', pais: 'País de la Tierra', kage: 'Tsuchikage' }
+    ],
+    clanes: [
+      { clan: 'Clan Uzumaki', aldea: 'Aldea de la Hoja', kekkei: 'Sellos y chakra vital' },
+      { clan: 'Clan Uchiha', aldea: 'Aldea de la Hoja', kekkei: 'Sharingan' },
+      { clan: 'Clan Hyuga', aldea: 'Aldea de la Hoja', kekkei: 'Byakugan' }
+    ],
+    shinobis: [
+      { nombre: 'Naruto Uzumaki', aldea: 'Aldea de la Hoja', pais: 'País del Fuego', clan: 'Clan Uzumaki', elemento: 'Viento (Aire)', elemento2: '', rango: 'Kage', estado: 'Activo', tachada: false, afiliacion: '', notas: 'Ejemplo del libro: usa Viento y pertenece al País del Fuego.' },
+      { nombre: 'Sasuke Uchiha', aldea: 'Aldea de la Hoja', pais: 'País del Fuego', clan: 'Clan Uchiha', elemento: 'Fuego', elemento2: 'Rayo', rango: 'Genin', estado: 'Desertor', tachada: true, afiliacion: 'Taka', notas: '' },
+      { nombre: 'Itachi Uchiha', aldea: 'Aldea de la Hoja', pais: 'País del Fuego', clan: 'Clan Uchiha', elemento: 'Fuego', elemento2: '', rango: 'ANBU', estado: 'Renegado', tachada: true, afiliacion: 'Akatsuki', notas: '' }
+    ]
+  };
+
+  var state, demo = false;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function slug(s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(' ')[0].replace(/[^a-z]/g, '') || 'otro'; }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) { var o = JSON.parse(raw); if (o && o.data) { demo = !!o.demo; state = o.data; state.url = o.url || ''; state.auto = o.auto !== false; return; } }
+    } catch (e) {}
+    state = JSON.parse(JSON.stringify(SEED)); state.url = ''; state.auto = true; demo = true;
+  }
+  function save() {
+    try {
+      var d = { paises: state.paises, aldeas: state.aldeas, clanes: state.clanes, shinobis: state.shinobis };
+      localStorage.setItem(KEY, JSON.stringify({ data: d, demo: demo, url: state.url, auto: state.auto }));
+    } catch (e) {}
+  }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = $('#toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, 4200);
+  }
+
+  /* Tabs */
+  function showTab(name) {
+    $$('.tab').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.tab === name ? 'true' : 'false'); });
+    $$('.panel').forEach(function (p) { p.hidden = p.id !== 'p-' + name; });
+  }
+  $$('.tab').forEach(function (b) { b.addEventListener('click', function () { showTab(b.dataset.tab); }); });
+
+  /* Selects */
+  function fill(sel, items, placeholder, selected) {
+    var cur = selected != null ? selected : sel.value;
+    var html = placeholder != null ? '<option value="">' + esc(placeholder) + '</option>' : '';
+    items.forEach(function (it) { html += '<option value="' + esc(it) + '">' + esc(it) + '</option>'; });
+    sel.innerHTML = html;
+    if (items.indexOf(cur) !== -1) sel.value = cur;
+  }
+  function fillAll() {
+    fill($('#s-aldea'), state.aldeas.map(function (a) { return a.aldea; }), state.aldeas.length ? 'Elige una aldea' : 'Primero crea una aldea');
+    fill($('#s-clan'), state.clanes.map(function (c) { return c.clan; }), 'Sin clan');
+    fill($('#s-elem'), ELEMENTOS, 'Sin elemento');
+    fill($('#s-elem2'), ELEMENTOS, 'Ninguno');
+    fill($('#s-rango'), RANGOS, null);
+    fill($('#s-estado'), ESTADOS, null);
+    fill($('#a-pais'), state.paises.map(function (p) { return p.pais; }), state.paises.length ? 'Elige un país' : 'Primero crea un país');
+    fill($('#c-aldea'), state.aldeas.map(function (a) { return a.aldea; }), state.aldeas.length ? 'Elige una aldea' : 'Primero crea una aldea');
+    syncPais();
+  }
+  function syncPais() {
+    var a = state.aldeas.filter(function (x) { return x.aldea === $('#s-aldea').value; })[0];
+    $('#s-pais').value = a ? a.pais : '';
+  }
+  $('#s-aldea').addEventListener('change', syncPais);
+
+  /* Tablas */
+  function cell(key, col, row) {
+    var v = row[col];
+    if (key === 'shinobis') {
+      if (col === 'nombre') return '<td class="name">' + esc(v) + '</td>';
+      if (col === 'elemento' || col === 'elemento2') return '<td>' + (v ? '<span class="chip"><span class="dot el-' + slug(v) + '"></span>' + esc(v) + '</span>' : '<span class="none">-</span>') + '</td>';
+      if (col === 'estado') return '<td><span class="pill ' + slug(v) + '">' + esc(v) + '</span>' + (row.tachada ? '<span class="tag">banda tachada</span>' : '') + '</td>';
+      if (col === 'tachada') return null;
+    }
+    if (col === 'pais' || col === 'aldea' || col === 'clan' || col === 'nombre') { if (col === 'pais' && key === 'paises') return '<td class="name">' + esc(v) + '</td>'; }
+    if ((key === 'aldeas' && col === 'aldea') || (key === 'clanes' && col === 'clan')) return '<td class="name">' + esc(v) + '</td>';
+    return '<td>' + (v ? esc(v) : '<span class="none">-</span>') + '</td>';
+  }
+  var VISIBLE = {
+    shinobis: ['nombre', 'aldea', 'pais', 'clan', 'elemento', 'elemento2', 'rango', 'estado', 'afiliacion'],
+    aldeas: ['aldea', 'pais', 'kage'], clanes: ['clan', 'aldea', 'kekkei'], paises: ['pais', 'notas']
+  };
+  var VACIO = { shinobis: 'Todavía no hay shinobis. Usa el formulario de arriba para agregar el primero.', aldeas: 'Todavía no hay aldeas. Agrega una con su país.', clanes: 'Todavía no hay clanes. Agrega uno con su aldea.', paises: 'Todavía no hay países. Agrega el primero para poder crear aldeas.' };
+  function renderTable(key) {
+    var T = TABLAS[key], rows = state[key], cols = VISIBLE[key];
+    var labels = {}; T.cols.forEach(function (c) { labels[c[0]] = c[1]; });
+    var box = $('#t-' + key);
+    if (!rows.length) { box.innerHTML = '<div class="empty">' + VACIO[key] + '</div>'; return; }
+    var h = '<table><thead><tr>' + cols.map(function (c) { return '<th>' + esc(labels[c]) + '</th>'; }).join('') + '<th class="num">Acción</th></tr></thead><tbody>';
+    rows.forEach(function (r, i) {
+      h += '<tr>' + cols.map(function (c) { return cell(key, c, r); }).join('') + '<td class="num"><button type="button" class="btn ghost small" data-del="' + key + '" data-i="' + i + '">Borrar</button></td></tr>';
+    });
+    box.innerHTML = h + '</tbody></table>';
+  }
+  function renderTree() {
+    var ul = $('#tree');
+    if (!state.paises.length) { ul.innerHTML = '<li class="none">Agrega países, aldeas y shinobis para ver sus relaciones.</li>'; return; }
+    var h = '';
+    state.paises.forEach(function (p) {
+      var aldeas = state.aldeas.filter(function (a) { return a.pais === p.pais; });
+      h += '<li><span class="lvl">País</span><span class="nm">' + esc(p.pais) + '</span>';
+      if (!aldeas.length) h += '<ul><li class="none">Sin aldeas registradas</li></ul>';
+      else {
+        h += '<ul>';
+        aldeas.forEach(function (a) {
+          var clanes = state.clanes.filter(function (c) { return c.aldea === a.aldea; });
+          var gente = state.shinobis.filter(function (s) { return s.aldea === a.aldea; });
+          h += '<li><span class="lvl">Aldea</span><span class="nm">' + esc(a.aldea) + '</span>' + (a.kage ? ' <span class="tag">' + esc(a.kage) + '</span>' : '');
+          if (clanes.length) h += '<div class="people"><span class="lvl">Clanes</span>' + clanes.map(function (c) { return '<span>' + esc(c.clan) + '</span>'; }).join('') + '</div>';
+          if (gente.length) h += '<div class="people"><span class="lvl">Shinobis</span>' + gente.map(function (s) { return '<span class="chip">' + esc(s.nombre) + ' <span class="pill ' + slug(s.estado) + '">' + esc(s.estado) + '</span></span>'; }).join('') + '</div>';
+          h += '</li>';
+        });
+        h += '</ul>';
+      }
+      h += '</li>';
+    });
+    ul.innerHTML = h;
+  }
+  function renderAll() {
+    ['paises', 'aldeas', 'clanes', 'shinobis'].forEach(function (k) {
+      renderTable(k);
+      var n = $('[data-count="' + k + '"]'); if (n) n.textContent = state[k].length;
+    });
+    renderTree(); fillAll();
+    $('#demo-note').hidden = !demo;
+  }
+
+  /* Envío a Google Sheets */
+  function filaDe(key, row) { return TABLAS[key].cols.map(function (c) { var v = row[c[0]]; return c[0] === 'tachada' ? (v ? 'Sí' : 'No') : (v == null ? '' : v); }); }
+  async function enviar(payload) {
+    if (!state.url) return false;
+    try {
+      await fetch(state.url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      return true;
+    } catch (e) { return false; }
+  }
+  async function agregado(key, row) {
+    demo = false; save(); renderAll();
+    if (state.url && state.auto) {
+      var ok = await enviar({ accion: 'agregar', tabla: TABLAS[key].hoja, fila: filaDe(key, row) });
+      toast(ok ? 'Guardado y enviado a tu hoja de Google Sheets.' : 'Guardado aquí. No se pudo enviar a Google Sheets desde esta vista; abre el archivo .html en tu navegador.');
+    } else toast('Agregado al libro.');
+  }
+
+  /* Formularios */
+  function dup(key, col, val) { return state[key].some(function (r) { return r[col].toLowerCase() === val.toLowerCase(); }); }
+  $('#f-paises').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var n = $('#p-nombre').value.trim(); if (!n) return;
+    if (dup('paises', 'pais', n)) return toast('Ya existe un país llamado ' + n + '.');
+    var row = { pais: n, notas: $('#p-notas').value.trim() };
+    state.paises.push(row); e.target.reset(); agregado('paises', row); $('#p-nombre').focus();
+  });
+  $('#f-aldeas').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var n = $('#a-nombre').value.trim(), p = $('#a-pais').value;
+    if (!n || !p) return toast('Escribe el nombre y elige un país.');
+    if (dup('aldeas', 'aldea', n)) return toast('Ya existe una aldea llamada ' + n + '.');
+    var row = { aldea: n, pais: p, kage: $('#a-kage').value.trim() };
+    state.aldeas.push(row); e.target.reset(); agregado('aldeas', row); $('#a-nombre').focus();
+  });
+  $('#f-clanes').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var n = $('#c-nombre').value.trim(), a = $('#c-aldea').value;
+    if (!n || !a) return toast('Escribe el nombre y elige una aldea.');
+    if (dup('clanes', 'clan', n)) return toast('Ya existe un clan llamado ' + n + '.');
+    var row = { clan: n, aldea: a, kekkei: $('#c-kekkei').value.trim() };
+    state.clanes.push(row); e.target.reset(); agregado('clanes', row); $('#c-nombre').focus();
+  });
+  $('#f-shinobis').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var n = $('#s-nombre').value.trim(), a = $('#s-aldea').value;
+    if (!n || !a) return toast('Escribe el nombre y elige una aldea.');
+    if (dup('shinobis', 'nombre', n)) return toast('Ya hay un shinobi llamado ' + n + '.');
+    var al = state.aldeas.filter(function (x) { return x.aldea === a; })[0];
+    var row = { nombre: n, aldea: a, pais: al ? al.pais : '', clan: $('#s-clan').value, elemento: $('#s-elem').value, elemento2: $('#s-elem2').value, rango: $('#s-rango').value, estado: $('#s-estado').value, tachada: $('#s-tachada').checked, afiliacion: $('#s-afil').value.trim(), notas: $('#s-notas').value.trim() };
+    state.shinobis.push(row); e.target.reset(); agregado('shinobis', row); $('#s-nombre').focus();
+  });
+
+  /* Borrar con confirmación en dos pasos */
+  function enUso(key, row) {
+    if (key === 'paises' && state.aldeas.some(function (a) { return a.pais === row.pais; })) return 'tiene aldeas registradas. Borra primero esas aldeas.';
+    if (key === 'aldeas' && (state.clanes.some(function (c) { return c.aldea === row.aldea; }) || state.shinobis.some(function (s) { return s.aldea === row.aldea; }))) return 'tiene clanes o shinobis. Borra primero esos registros.';
+    if (key === 'clanes' && state.shinobis.some(function (s) { return s.clan === row.clan; })) return 'tiene shinobis asignados. Cambia o borra esos shinobis primero.';
+    return '';
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-del]'); if (!b) return;
+    var key = b.dataset.del, i = +b.dataset.i, row = state[key][i];
+    var bloqueo = enUso(key, row);
+    if (bloqueo) return toast('No se puede borrar ' + (row.pais || row.aldea || row.clan || row.nombre) + ': ' + bloqueo);
+    if (!b.classList.contains('danger-armed')) {
+      b.classList.add('danger-armed'); b.textContent = 'Confirmar';
+      setTimeout(function () { if (b.isConnected) { b.classList.remove('danger-armed'); b.textContent = 'Borrar'; } }, 3000);
+      return;
+    }
+    state[key].splice(i, 1); save(); renderAll(); toast('Registro borrado.');
+  });
+  $('#btn-clear').addEventListener('click', function () {
+    state.paises = []; state.aldeas = []; state.clanes = []; state.shinobis = []; demo = false; save(); renderAll(); showTab('paises'); toast('Libro vacío. Empieza creando un país.');
+  });
+
+  /* Copiar */
+  function copiar(texto, ok) {
+    function viejo() {
+      var ta = document.createElement('textarea'); ta.value = texto; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      var r = false; try { r = document.execCommand('copy'); } catch (x) {} ta.remove();
+      toast(r ? ok : 'No se pudo copiar. Selecciona el texto y cópialo con el teclado.');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(function () { toast(ok); }, viejo); else viejo();
+  }
+  $$('[data-copy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var k = b.dataset.copy, T = TABLAS[k];
+      if (!state[k].length) return toast('No hay filas para copiar.');
+      var lines = [T.cols.map(function (c) { return c[1]; }).join('\t')];
+      state[k].forEach(function (r) { lines.push(filaDe(k, r).map(function (v) { return String(v).replace(/[\t\r\n]+/g, ' '); }).join('\t')); });
+      copiar(lines.join('\n'), 'Tabla copiada. Pégala en la celda A1 de la hoja ' + T.hoja + '.');
+    });
+  });
+
+  /* Google Sheets */
+  var APPS =
+"var HOJAS = {\n" +
+"  Paises: ['País', 'Notas'],\n" +
+"  Aldeas: ['Aldea', 'País', 'Líder'],\n" +
+"  Clanes: ['Clan', 'Aldea', 'Línea de sangre'],\n" +
+"  Shinobis: ['Nombre', 'Aldea', 'País', 'Clan', 'Elemento', 'Elemento secundario', 'Rango', 'Estado', 'Banda tachada', 'Afiliación', 'Notas']\n" +
+"};\n\n" +
+"// Ejecuta esta función una vez para crear las hojas.\n" +
+"function configurar() {\n" +
+"  var ss = SpreadsheetApp.getActiveSpreadsheet();\n" +
+"  Object.keys(HOJAS).forEach(function (nombre) {\n" +
+"    var h = ss.getSheetByName(nombre) || ss.insertSheet(nombre);\n" +
+"    if (h.getLastRow() === 0) {\n" +
+"      var cab = HOJAS[nombre];\n" +
+"      h.getRange(1, 1, 1, cab.length).setValues([cab])\n" +
+"        .setFontWeight('bold').setBackground('#F26A1B').setFontColor('#1A0F05');\n" +
+"      h.setFrozenRows(1);\n" +
+"    }\n" +
+"  });\n" +
+"  ['Hoja 1', 'Sheet1'].forEach(function (n) {\n" +
+"    var s = ss.getSheetByName(n);\n" +
+"    if (s && ss.getSheets().length > 1) ss.deleteSheet(s);\n" +
+"  });\n" +
+"}\n\n" +
+"// Recibe los datos que envía la página.\n" +
+"function doPost(e) {\n" +
+"  var d = JSON.parse(e.postData.contents);\n" +
+"  configurar();\n" +
+"  var ss = SpreadsheetApp.getActiveSpreadsheet();\n" +
+"  if (d.accion === 'agregar') {\n" +
+"    ss.getSheetByName(d.tabla).appendRow(d.fila);\n" +
+"  } else if (d.accion === 'reemplazar') {\n" +
+"    Object.keys(d.tablas).forEach(function (nombre) {\n" +
+"      var h = ss.getSheetByName(nombre);\n" +
+"      var filas = d.tablas[nombre];\n" +
+"      if (h.getLastRow() > 1) {\n" +
+"        h.getRange(2, 1, h.getLastRow() - 1, h.getLastColumn()).clearContent();\n" +
+"      }\n" +
+"      if (filas.length) {\n" +
+"        h.getRange(2, 1, filas.length, filas[0].length).setValues(filas);\n" +
+"      }\n" +
+"    });\n" +
+"  }\n" +
+"  return ContentService.createTextOutput('ok');\n" +
+"}\n";
+  $('#code').textContent = APPS;
+  $('#btn-copy-code').addEventListener('click', function () { copiar(APPS, 'Código copiado. Pégalo en Apps Script.'); });
+  $('#g-url').value = ''; $('#g-auto').checked = true;
+  $('#btn-save-url').addEventListener('click', function () {
+    var u = $('#g-url').value.trim();
+    if (u && !/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)) return toast('La URL debe empezar con https://script.google.com y terminar en /exec.');
+    state.url = u; state.auto = $('#g-auto').checked; save(); toast(u ? 'URL guardada.' : 'URL borrada.');
+  });
+  $('#btn-sync').addEventListener('click', async function () {
+    if (!state.url) return toast('Guarda primero la URL de la aplicación web.');
+    var tablas = {}; Object.keys(TABLAS).forEach(function (k) { tablas[TABLAS[k].hoja] = state[k].map(function (r) { return filaDe(k, r); }); });
+    var ok = await enviar({ accion: 'reemplazar', tablas: tablas });
+    toast(ok ? 'Libro enviado. Revisa tu hoja de Google Sheets.' : 'No se pudo enviar desde esta vista. Abre el archivo .html en tu navegador y vuelve a intentar.');
+  });
+
+  load();
+  $('#g-url').value = state.url || ''; $('#g-auto').checked = state.auto;
+  $('#g-auto').addEventListener('change', function () { state.auto = $('#g-auto').checked; save(); });
+  renderAll();
+})();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js');
+    });
+  }
+</script>
+</html>
